@@ -1,32 +1,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(int argc, char **argv) {
-	  if (argc != 2) {
-	      fprintf(stderr, "you need two parameters\n");
-	      return 1;
-	    }
-	
-	  char *p = argv[1];	 
+int main(int argc, char **argv)
+{
+	if (argc != 2)
+	{
+		fprintf(stderr, "you need two parameters\n");
+		return 1;
+	}
+
+	char *p = argv[1];
 
 	printf(".intel_syntax noprefix\n");
 	printf(".global main\n");
 	printf("main:\n");
-	printf("  mov rax, %ld\n", strtol(p,&p,10));
+	printf("  mov rax, %ld\n", strtol(p, &p, 10));
 
-	while (*p){
-		if(*p == '+'){
+	while (*p)
+	{
+		if (*p == '+')
+		{
 			p++;
-			printf(" add rax, %ld\n", strtol(p,&p,10));
+			printf(" add rax, %ld\n", strtol(p, &p, 10));
 			continue;
 		}
 
-		if(*p == '-'){
+		if (*p == '-')
+		{
 			p++;
-			printf(" sub rax, %ld\n", strtol(p,&p,10));
+			printf(" sub rax, %ld\n", strtol(p, &p, 10));
 			continue;
 		}
-		
+
 		fprintf(stderr, "undefined charactor: '%c'\n", *p);
 		return 1;
 	}
