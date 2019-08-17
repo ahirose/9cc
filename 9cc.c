@@ -48,8 +48,7 @@ bool consume(char op){
 
 // step forward to the next token if the next one is the expected character,
 // show error for the others
-void expect(char op)
-{
+void expect(char op){
 	if(token->kind!=TK_RESERVED||)
 }
 
