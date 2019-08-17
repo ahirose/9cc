@@ -37,57 +37,114 @@ void error(char *fmt, ...){
 	exit(1);
 }
 
-// return true and step forward to the next token if the next one is the expected character
-// return false for the others.
+// 次のトークンが期待している記号の時には、トークンを一つ進める
+// 真を返す。そうでないときはエラー。
 bool consume(char op){
 	if(token->kind != TK_RESERVED || token->str[0] != op)
-		error("''%c'ではありません",op);
+		return false;
 	token=token->next;
+	return true;
 }
 
 
-// step forward to the next token if the next one is the expected character,
-// show error for the others
+// 次のトークンが期待している記号の時には、トークンを一つ進める
+// そうでないときはエラー。
 void expect(char op){
-	if(token->kind!=TK_RESERVED||)
+	if(token->kind!=TK_RESERVED|| token->str[0]!=op)
+		error("not a '%c'",op);
+	token=token->next;
+
 }
+
+// 次のトークンが数値の時には、トークンを一つ進めてその数値を返す
+// そうでないときはエラー。
+int expect_number(){
+	if(token->kind!=TK_NUM)
+		error("'not a number");
+	int val = token->val;
+	token=token->next;
+	return val;
+}
+
+bool at_eof(){
+	return token->kind == TK_EOF;
+}
+
+//新しいトークンを作成してcurにつなげる
+Token *new_token(TokenKind kind, Token *cur, char *str){
+	Token *tok = calloc(1, sizeof(Token));
+	tok->kind=kind;
+	tok->str=str;
+	cur->next=tok;
+	return tok;
+}
+
+//入力文字列pをトークナイズしてそれを返す
+Token *tokenize(char *p){
+	Token head;
+	head.next = NULL;
+	Token *cur = &head;
+
+	while(*p){
+		//空白文字をスキップ
+		if(isspace(*p)){
+			p++;
+			continue;
+		}
+
+		if(*p=='+'|| *p=='-'){
+			cur = new_token(TK_RESERVED, cur, p++);
+			continue;
+		}
+
+		if(isdigit(*p)){
+			cur=new_token(TK_NUM,cur,p);
+			cur->val = strtol(p,&p,10);
+			continue;
+		}
+		error("tokenize error '%c'",*p);
+	}
+	new_token(TK_EOF,cur,p);
+	return head.next;
+}
+
 
 
 int main(int argc, char **argv)
-
-
 {
 	if (argc != 2)
 	{
-		fprintf(stderr, "you need two parameters\n");
+		error("you need two parameters\n");
 		return 1;
 	}
-	char *p = argv[1];
 
+	//トークナイズする
+	token=tokenize(argv[1]);
+
+	//アセンブリの前半部分を出力
 	printf(".intel_syntax noprefix\n");
 	printf(".global main\n");
 	printf("main:\n");
-	printf("  mov rax, %ld\n", strtol(p, &p, 10));
 
-	while (*p)
+	//式の最初は数でなければならないので、それをチェックして
+	//最初のmov命令を出力
+	printf("  mov rax, %d\n", expect_number());
+
+	//`+<数>`あるいは`-<数>`というトークンの並びを消費しつつ
+	// アセンブリを出力
+
+	while (!at_eof())
 	{
-		if (*p == '+')
+		if (consume( '+'))
 		{
-			p++;
-			printf(" add rax, %ld\n", strtol(p, &p, 10));
+			printf(" add rax, %d\n", expect_number());
 			continue;
 		}
 
-		if (*p == '-')
-		{
-			p++;
-			printf(" sub rax, %ld\n", strtol(p, &p, 10));
-			continue;
-		}
-
-		fprintf(stderr, "undefined charactor: '%c'\n", *p);
-		return 1;
+		expect('-');
+		printf(" sub rax, %d\n", expect_number());
 	}
+
 	printf("  ret\n");
 	return 0;
 }
