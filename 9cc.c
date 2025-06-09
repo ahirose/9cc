@@ -29,15 +29,16 @@ Token *token;
 //入力プログラム
 char *user_input;
 
-//エラーを報告するための関数
-//printfと同じ引数をとる
-//void error(char *fmt, ...){
-//	va_list ap;
-//	va_start(ap, fmt);
-//	vfprintf(stderr, fmt, ap);
-//	fprintf(stderr, "\n");
-//	exit(1);
-//}
+// 簡単なエラー出力
+// printfと同様の引数を受け取る
+void error(char *fmt, ...){
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    exit(1);
+}
+
 
 //エラー箇所を報告する
 void error_at(char *loc, char *fmt, ...){
@@ -127,11 +128,11 @@ Token *tokenize(char *p){
 
 int main(int argc, char **argv)
 {
-	if (argc != 2)
-	{
-		error_at(token->str,"you need two parameters\n");
-		return 1;
-	}
+        if (argc != 2)
+        {
+                error("you need two parameters");
+                return 1;
+        }
 
 	user_input=argv[1];
 	//トークナイズする
